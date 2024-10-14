@@ -3,7 +3,6 @@ import google.generativeai as genai
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-import json
 
 # Load environment variables
 load_dotenv()
@@ -12,44 +11,10 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Function to get Gemini response
-def get_gemini_response(prompt, language):
+def get_gemini_response(prompt):
     model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(f"Please respond in {language}:\n{prompt}")
+    response = model.generate_content(prompt)
     return response.text
-
-# Function to translate UI elements
-def translate_ui(key, language):
-    translations = {
-        "en": {
-            "app_title": "Spotlaiz Marketing Content Generator",
-            "app_subtitle": "Empower your brand with AI-driven marketing solutions",
-            "content_type_label": "Choose Content Type",
-            "social_media_post": "Social Media Post",
-            "marketing_campaign": "Marketing Campaign Strategy",
-            "generate_button": "Generate",
-            "download_button": "Download",
-            "language_selector": "Select Language",
-            "analysis_title": "Spotlaiz Insights",
-            "target_audience": "Target Audience",
-            "campaign_goals": "Campaign Goals",
-            "budget": "Budget",
-        },
-        "ar": {
-            "app_title": "مولد محتوى التسويق Spotlaiz",
-            "app_subtitle": "عزز علامتك التجارية بحلول تسويقية مدعومة بالذكاء الاصطناعي",
-            "content_type_label": "اختر نوع المحتوى",
-            "social_media_post": "منشور وسائل التواصل الاجتماعي",
-            "marketing_campaign": "استراتيجية الحملة التسويقية",
-            "generate_button": "إنشاء",
-            "download_button": "تحميل",
-            "language_selector": "اختر اللغة",
-            "analysis_title": "رؤى Spotlaiz",
-            "target_audience": "الجمهور المستهدف",
-            "campaign_goals": "أهداف الحملة",
-            "budget": "الميزانية",
-        }
-    }
-    return translations[language][key]
 
 # Custom CSS for Spotlaiz branding
 st.markdown("""
@@ -65,174 +30,79 @@ st.markdown("""
         background-color: #4682b4;
         color: white;
     }
-    .arabic {
-        direction: rtl;
-        text-align: right;
-    }
     </style>
     """, unsafe_allow_html=True)
 
-# Language selection
-language = st.sidebar.selectbox(
-    "Select Language / اختر اللغة",
-    ("English", "العربية")
-)
+st.title("Spotlaiz Marketing Content Generator")
+st.write("Empower your brand with AI-driven marketing solutions")
 
-lang_code = "en" if language == "English" else "ar"
-
-# App title and subtitle
-st.title(translate_ui("app_title", lang_code))
-st.write(translate_ui("app_subtitle", lang_code))
-
-# Content type selection
+# Sidebar for content type selection
 content_type = st.sidebar.selectbox(
-    translate_ui("content_type_label", lang_code),
-    (translate_ui("social_media_post", lang_code), translate_ui("marketing_campaign", lang_code))
+    "Choose Content Type",
+    ("Social Media Post", "Marketing Campaign Strategy")
 )
 
-# Output language selection
-output_language = st.sidebar.multiselect(
-    "Output Language / لغة الإخراج",
-    ["English", "العربية"],
-    default=["English"] if lang_code == "en" else ["العربية"]
-)
-
-if translate_ui("social_media_post", lang_code) in content_type:
-    st.header(translate_ui("social_media_post", lang_code))
+if content_type == "Social Media Post":
+    st.header("Social Media Post Generator")
     
-    platform = st.selectbox(translate_ui("Platform", lang_code), ["Instagram", "Facebook", "LinkedIn"])
-    brand_personality = st.select_slider(
-        translate_ui("Brand Personality", lang_code),
-        options=["Professional", "Casual", "Playful", "Inspirational", "Educational"]
-    )
-    industry = st.selectbox(translate_ui("Industry", lang_code), ["Technology", "Fashion", "Food & Beverage", "Health & Wellness", "Finance"])
-    key_message = st.text_area(translate_ui("Key Message", lang_code), max_chars=200)
-    target_emotion = st.select_slider(
-        translate_ui("Target Emotion", lang_code),
-        options=["Excitement", "Trust", "Joy", "Anticipation", "Curiosity"]
-    )
+    platform = st.selectbox("Platform", ["Twitter", "Instagram", "Facebook", "LinkedIn"])
+    brand_voice = st.selectbox("Brand Voice", ["Funny", "Informative", "Inspiring", "Professional"])
+    product_description = st.text_area("Product/Service Description", max_chars=200)
+    key_message = st.text_input("Key Message")
 
-    if st.button(translate_ui("generate_button", lang_code)):
-        prompt = f"""Create a social media post for {platform} with the following details:
-        Industry: {industry}
-        Brand Personality: {brand_personality}
-        Key Message: {key_message}
-        Target Emotion: {target_emotion}
+    if st.button("Generate Post"):
+        prompt = f"""Create a {brand_voice} social media post for {platform} about the following product/service:
+        {product_description}
+        Key message: {key_message}
+        Include relevant hashtags grouped by category (brand, industry, trending).
+        Ensure the post adheres to the platform's character limits."""
 
-        The post should include:
-        1. Attention-grabbing headline
-        2. Main body (respecting platform character limits)
-        3. Call-to-action
-        4. 3-5 relevant hashtags
+        response = get_gemini_response(prompt)
 
-        Ensure the tone matches the brand personality and aims to evoke the target emotion."""
-
-        for lang in output_language:
-            output_lang_code = "en" if lang == "English" else "ar"
-            response = get_gemini_response(prompt, lang)
-            
-            st.subheader(f"Generated Post ({lang}):")
-            if output_lang_code == "ar":
-                st.markdown(f'<div class="arabic">{response}</div>', unsafe_allow_html=True)
-            else:
-                st.write(response)
+        st.subheader("Generated Post:")
+        st.write(response)
 
         # Spotlaiz Insights
-        st.subheader(translate_ui("analysis_title", lang_code))
-        insight_prompt = f"""Analyze the social media post and provide concise insights:
-        1. Engagement Potential (Score 1-10)
-        2. Brand Alignment (Score 1-10)
-        3. Key Strengths (Bullet points)
-        4. Improvement Suggestions (Bullet points)
-        
-        Present the analysis as a JSON object with these keys: engagement_score, brand_alignment_score, strengths, improvements"""
+        st.subheader("Spotlaiz Insights")
+        insight_prompt = f"Analyze the following social media post and provide brief insights on its effectiveness, considering the platform ({platform}), brand voice ({brand_voice}), and key message:\n\n{response}"
+        insights = get_gemini_response(insight_prompt)
+        st.write(insights)
 
-        insights_raw = get_gemini_response(insight_prompt, "English")
-        try:
-            insights = json.loads(insights_raw)
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Engagement Potential", f"{insights['engagement_score']}/10")
-            with col2:
-                st.metric("Brand Alignment", f"{insights['brand_alignment_score']}/10")
-            st.subheader("Key Strengths")
-            for strength in insights['strengths']:
-                st.markdown(f"- {strength}")
-            st.subheader("Improvement Suggestions")
-            for improvement in insights['improvements']:
-                st.markdown(f"- {improvement}")
-        except json.JSONDecodeError:
-            st.write("Unable to parse insights. Here's the raw output:")
-            st.write(insights_raw)
-
-elif translate_ui("marketing_campaign", lang_code) in content_type:
-    st.header(translate_ui("marketing_campaign", lang_code))
+elif content_type == "Marketing Campaign Strategy":
+    st.header("Marketing Campaign Strategy Outliner")
     
-    target_audience = st.text_area(translate_ui("target_audience", lang_code), "Describe your ideal customer persona")
-    campaign_goals = st.multiselect(translate_ui("campaign_goals", lang_code), ["Brand Awareness", "Lead Generation", "Sales Conversion", "Customer Retention", "Product Launch"])
-    budget = st.number_input(translate_ui("budget", lang_code), min_value=1000, max_value=1000000, value=10000, step=1000)
-    campaign_duration = st.slider("Campaign Duration (weeks)", 1, 52, 4)
-    unique_selling_point = st.text_input("Unique Selling Point", "What sets your product/service apart?")
+    target_audience = st.text_input("Target Audience", "Describe your ideal customer")
+    campaign_goals = st.multiselect("Campaign Goals", ["Brand awareness", "Lead generation", "Sales", "Customer retention"])
+    budget = st.slider("Budget", 1000, 100000, 10000)
 
-    if st.button(translate_ui("generate_button", lang_code)):
-        prompt = f"""Create a marketing campaign strategy outline with the following details:
+    if st.button("Generate Strategy"):
+        prompt = f"""Create a marketing campaign strategy outline for the following:
         Target Audience: {target_audience}
         Campaign Goals: {', '.join(campaign_goals)}
         Budget: ${budget}
-        Campaign Duration: {campaign_duration} weeks
-        Unique Selling Point: {unique_selling_point}
 
         Include:
-        1. Campaign Concept: A creative theme that ties the campaign together
-        2. Channel Strategy: Prioritized list of marketing channels with budget allocation
-        3. Content Calendar: High-level overview of content types and posting frequency
-        4. Key Performance Indicators (KPIs): Specific metrics to measure success
-        5. Risk Assessment: Potential challenges and mitigation strategies"""
+        1. Three campaign title ideas with varied styles
+        2. Prioritized list of recommended channels with brief justifications
+        3. 3-5 content pillars (overarching themes)
+        4. Potential KPIs aligned with the chosen goals"""
 
-        for lang in output_language:
-            output_lang_code = "en" if lang == "English" else "ar"
-            strategy = get_gemini_response(prompt, lang)
-            
-            st.subheader(f"Generated Strategy ({lang}):")
-            if output_lang_code == "ar":
-                st.markdown(f'<div class="arabic">{strategy}</div>', unsafe_allow_html=True)
-            else:
-                st.write(strategy)
+        strategy = get_gemini_response(prompt)
+        st.subheader("Generated Strategy:")
+        st.write(strategy)
 
         # Spotlaiz Insights
-        st.subheader(translate_ui("analysis_title", lang_code))
-        insight_prompt = f"""Analyze the marketing campaign strategy and provide concise insights:
-        1. Strategy Effectiveness (Score 1-10)
-        2. Budget Optimization (Score 1-10)
-        3. Key Strengths (Bullet points)
-        4. Potential Risks (Bullet points)
-        
-        Present the analysis as a JSON object with these keys: effectiveness_score, budget_score, strengths, risks"""
-
-        insights_raw = get_gemini_response(insight_prompt, "English")
-        try:
-            insights = json.loads(insights_raw)
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Strategy Effectiveness", f"{insights['effectiveness_score']}/10")
-            with col2:
-                st.metric("Budget Optimization", f"{insights['budget_score']}/10")
-            st.subheader("Key Strengths")
-            for strength in insights['strengths']:
-                st.markdown(f"- {strength}")
-            st.subheader("Potential Risks")
-            for risk in insights['risks']:
-                st.markdown(f"- {risk}")
-        except json.JSONDecodeError:
-            st.write("Unable to parse insights. Here's the raw output:")
-            st.write(insights_raw)
+        st.subheader("Spotlaiz Insights")
+        insight_prompt = f"Analyze the following marketing campaign strategy and provide brief insights on its effectiveness, considering the target audience, goals, and budget:\n\n{strategy}"
+        insights = get_gemini_response(insight_prompt)
+        st.write(insights)
 
     # Download option
-    if st.button(translate_ui("download_button", lang_code)):
+    if st.button("Download Strategy"):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"spotlaiz_strategy_{timestamp}.txt"
         st.download_button(
-            label=translate_ui("download_button", lang_code),
+            label="Click to Download",
             data=strategy,
             file_name=filename,
             mime="text/plain"
