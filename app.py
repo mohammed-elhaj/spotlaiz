@@ -33,6 +33,13 @@ def translate_ui(key, language):
             "target_audience": "Target Audience",
             "campaign_goals": "Campaign Goals",
             "budget": "Budget",
+            "platform": "Platform",
+            "brand_personality": "Brand Personality",
+            "industry": "Industry",
+            "key_message": "Key Message",
+            "target_emotion": "Target Emotion",
+            "campaign_duration": "Campaign Duration (weeks)",
+            "unique_selling_point": "Unique Selling Point",
         },
         "ar": {
             "app_title": "مولد محتوى التسويق Spotlaiz",
@@ -47,6 +54,13 @@ def translate_ui(key, language):
             "target_audience": "الجمهور المستهدف",
             "campaign_goals": "أهداف الحملة",
             "budget": "الميزانية",
+            "platform": "المنصة",
+            "brand_personality": "شخصية العلامة التجارية",
+            "industry": "الصناعة",
+            "key_message": "الرسالة الرئيسية",
+            "target_emotion": "العاطفة المستهدفة",
+            "campaign_duration": "مدة الحملة (بالأسابيع)",
+            "unique_selling_point": "نقطة البيع الفريدة",
         }
     }
     return translations[language][key]
@@ -100,15 +114,15 @@ output_language = st.sidebar.multiselect(
 if translate_ui("social_media_post", lang_code) in content_type:
     st.header(translate_ui("social_media_post", lang_code))
     
-    platform = st.selectbox(translate_ui("Platform", lang_code), ["Instagram", "Facebook", "LinkedIn"])
+    platform = st.selectbox(translate_ui("platform", lang_code), ["Instagram", "Facebook", "LinkedIn"])
     brand_personality = st.select_slider(
-        translate_ui("Brand Personality", lang_code),
+        translate_ui("brand_personality", lang_code),
         options=["Professional", "Casual", "Playful", "Inspirational", "Educational"]
     )
-    industry = st.selectbox(translate_ui("Industry", lang_code), ["Technology", "Fashion", "Food & Beverage", "Health & Wellness", "Finance"])
-    key_message = st.text_area(translate_ui("Key Message", lang_code), max_chars=200)
+    industry = st.selectbox(translate_ui("industry", lang_code), ["Technology", "Fashion", "Food & Beverage", "Health & Wellness", "Finance"])
+    key_message = st.text_area(translate_ui("key_message", lang_code), max_chars=200)
     target_emotion = st.select_slider(
-        translate_ui("Target Emotion", lang_code),
+        translate_ui("target_emotion", lang_code),
         options=["Excitement", "Trust", "Joy", "Anticipation", "Curiosity"]
     )
 
@@ -171,8 +185,9 @@ elif translate_ui("marketing_campaign", lang_code) in content_type:
     target_audience = st.text_area(translate_ui("target_audience", lang_code), "Describe your ideal customer persona")
     campaign_goals = st.multiselect(translate_ui("campaign_goals", lang_code), ["Brand Awareness", "Lead Generation", "Sales Conversion", "Customer Retention", "Product Launch"])
     budget = st.number_input(translate_ui("budget", lang_code), min_value=1000, max_value=1000000, value=10000, step=1000)
-    campaign_duration = st.slider("Campaign Duration (weeks)", 1, 52, 4)
-    unique_selling_point = st.text_input("Unique Selling Point", "What sets your product/service apart?")
+    campaign_duration = st.slider(translate_ui("campaign_duration", lang_code), 1, 52, 4)
+    unique_selling_point = st.text_input(translate_ui("unique_selling_point", lang_code), "What sets your product/service apart?")
+
 
     if st.button(translate_ui("generate_button", lang_code)):
         prompt = f"""Create a marketing campaign strategy outline with the following details:
