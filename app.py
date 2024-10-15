@@ -114,7 +114,7 @@ output_language = st.sidebar.multiselect(
 if translate_ui("social_media_post", lang_code) in content_type:
     st.header(translate_ui("social_media_post", lang_code))
     
-    platform = st.selectbox(translate_ui("platform", lang_code), ["Instagram", "Facebook", "LinkedIn"])
+    platform = st.selectbox(translate_ui("platform", lang_code), ["Instagram", "Facebook", "LinkedIn","Twitter"])
     brand_personality = st.select_slider(
         translate_ui("brand_personality", lang_code),
         options=["Professional", "Casual", "Playful", "Inspirational", "Educational"]
